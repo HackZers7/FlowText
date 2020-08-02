@@ -1,0 +1,10 @@
+C:\Users\hackz\Desktop\FlowText\FlowText\obj\Debug\FlowText.csprojAssemblyReference.cache
+C:\Users\hackz\Desktop\FlowText\FlowText\bin\Debug\FlowText.dll
+C:\Users\hackz\Desktop\FlowText\FlowText\bin\Debug\FlowText.pdb
+C:\Users\hackz\Desktop\FlowText\FlowText\obj\Debug\FlowText.dll
+C:\Users\hackz\Desktop\FlowText\FlowText\obj\Debug\FlowText.pdb
+C:\Users\hackz\Desktop\FlowText NewText\FlowText\bin\Debug\FlowText.dll
+C:\Users\hackz\Desktop\FlowText NewText\FlowText\bin\Debug\FlowText.pdb
+C:\Users\hackz\Desktop\FlowText NewText\FlowText\obj\Debug\FlowText.csprojAssemblyReference.cache
+C:\Users\hackz\Desktop\FlowText NewText\FlowText\obj\Debug\FlowText.dll
+C:\Users\hackz\Desktop\FlowText NewText\FlowText\obj\Debug\FlowText.pdb
