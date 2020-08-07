@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FlowText.TagsCreator;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,8 +8,6 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Xml;
-
-using FlowText.TagsCreator;
 using static FlowText.DeafaultTags.CreateDefaultTags;
 
 namespace FlowText
@@ -198,8 +197,8 @@ namespace FlowText
                         if (tagVarl != "" && tagVarl != null) // Разделение всех вариантов тега
                             tagVar = tagVarl.Split(new char[] { ' ' });
 
-                        foreach(var el in oneTags)
-                            if(el.TagName == tagName.ToLower().Trim())
+                        foreach (var el in oneTags)
+                            if (el.TagName == tagName.ToLower().Trim())
                             {
                                 s[i] = "[&OneTagsSplitTag&" + tagName + " " + tagVarl + "]";
                                 s.Insert(i + 1, "Текст заполнения внутренностей тега, будет удален.");
@@ -257,9 +256,9 @@ namespace FlowText
                     }
 
                     // Проверка на закрывающийся тег
-                    if (s[i].Replace(" ","").StartsWith("[/"))
+                    if (s[i].Replace(" ", "").StartsWith("[/"))
                         continue;
-                    
+
 
                     // Резделение тега и его вариантов, раделителями являются пробелы
                     TagSplitter(s[pos1], out string tagName, out string tagVar, startBracket, endBracket);
@@ -273,7 +272,7 @@ namespace FlowText
                     {
                         TagSplitter(s[j], out string tempName, out string none, startBracket, endBracket);
 
-                        if($"{startBracket}{tagName}{endBracket}".ToLower() == $"{startBracket}{tempName}{endBracket}".ToLower())
+                        if ($"{startBracket}{tagName}{endBracket}".ToLower() == $"{startBracket}{tempName}{endBracket}".ToLower())
                             countSkip++;
 
                         if ($"{startBracket}/{tagName}{endBracket}".ToLower() == s[j].ToLower().Replace(" ", ""))
@@ -289,7 +288,7 @@ namespace FlowText
 
                     // Реагирование на не нахождение закрывающегося тега
                     //if (pos2 == -1)
-                      //  return @"<Run>Ошибка: Не найден закрывающийся тег для: " + startBracket + tagName + " " + tagVar + endBracket + " </Run>";
+                    //  return @"<Run>Ошибка: Не найден закрывающийся тег для: " + startBracket + tagName + " " + tagVar + endBracket + " </Run>";
 
                     TagHandler tempHandler = new TagHandler();
                     tempHandler.TagName = tagName;

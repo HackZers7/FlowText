@@ -1,0 +1,5 @@
+C:\Users\hackz\Desktop\FlowText NewText\FlowText\bin\Release\FlowText.dll
+C:\Users\hackz\Desktop\FlowText NewText\FlowText\bin\Release\FlowText.pdb
+C:\Users\hackz\Desktop\FlowText NewText\FlowText\obj\Release\FlowText.csprojAssemblyReference.cache
+C:\Users\hackz\Desktop\FlowText NewText\FlowText\obj\Release\FlowText.dll
+C:\Users\hackz\Desktop\FlowText NewText\FlowText\obj\Release\FlowText.pdb

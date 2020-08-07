@@ -62,5 +62,8 @@
     <Compile Include="TagsCreator\ICreatorClosingTags.cs" />
     <Compile Include="TagsCreator\ICreatorOneTags.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

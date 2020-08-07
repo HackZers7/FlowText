@@ -1,20 +1,7 @@
-﻿using System;
+﻿using FlowText.TagsCreator;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Documents;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using System.Windows;
-using System.Windows.Documents;
-using System.Windows.Markup;
-using System.Xml;
-
-using FlowText.TagsCreator;
+using System.Windows.Controls;
 
 namespace FlowText
 {
@@ -28,7 +15,7 @@ namespace FlowText
         /// <summary>
         /// Возвращает и устанавливает текст.
         /// </summary>
-        public string Text 
+        public string Text
         {
             get
             {
@@ -37,7 +24,7 @@ namespace FlowText
             set
             {
                 _text = "";
-                if(value != null)
+                if (value != null)
                     _text = value;
 
                 Document = ParseText.ParseTextToXaml(_text, _customOneTags, _customClosingTags, FontSize, TextAlignment);
@@ -46,7 +33,7 @@ namespace FlowText
         /// <summary>
         /// Возвращает и устанавливает выравание текста.
         /// </summary>
-        public TextAlignment TextAlignment {get => _textAlignment; set => _textAlignment = value; }
+        public TextAlignment TextAlignment { get => _textAlignment; set => _textAlignment = value; }
         /// <summary>
         /// Возвращает и устанавливает кастомные закрывающиеся теги.
         /// </summary>
