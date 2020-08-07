@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using FlowText.TagsCreator;
+﻿using FlowText.TagsCreator;
 
 namespace FlowText.DeafaultTags.ClosingTags
 {

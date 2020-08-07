@@ -31,7 +31,7 @@ namespace FlowText.DeafaultTags.ClosingTags
                         runCode += "TextDecorations ='" + val + "' ";
                         break;
 
-                    case "newsize":
+                    case "scale":
                     case "size":
                         bool flag = double.TryParse(var.Value, out double value);
 
@@ -39,17 +39,13 @@ namespace FlowText.DeafaultTags.ClosingTags
 
                         switch (var.Variant.ToLower().Trim())
                         {
-                            case "newsize":
+                            case "scale":
                                 value += textHandler.BaseFontSize;
-                                value = value <= 0 ? 1 : value;
-                                runCode += "FontSize='" + value + "' "; // Размер
-                                break;
-
-                            case "size":
-                                value = value <= 0 ? 1 : value;
-                                runCode += "FontSize='" + value + "' "; // Размер
                                 break;
                         }
+                        value = value <= 0 ? 1 : value;
+
+                        textHandler.BaseFontSize = value;
                         break;
 
                     case "family":

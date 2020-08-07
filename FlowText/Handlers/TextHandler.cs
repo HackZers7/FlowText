@@ -1,8 +1,6 @@
-﻿using System;
+﻿using FlowText.TagsCreator;
+using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
-
-using FlowText.TagsCreator;
 
 namespace FlowText
 {
@@ -27,6 +25,7 @@ namespace FlowText
                 return "";
             try
             {
+                Tags = ReViwVariants();
                 Tags = ReViwTags();
 
                 string run = @"<Run ";
@@ -50,6 +49,9 @@ namespace FlowText
                     if (FlagBreak) return run;
                 }
 
+                BaseFontSize = BaseFontSize <= 0 ? 1 : BaseFontSize;
+
+                run += "FontSize='" + BaseFontSize + "' ";
                 return run.Remove(run.Length - 1, 1) + @">" + Text + @"</Run> ";
             }
             catch (Exception e) { return $"<Run>Ошибка: Проверьте правельность написания тегов.  {e}</Run>"; }
@@ -80,8 +82,8 @@ namespace FlowText
 
                             for (int j = 0; j < el.VariantsTag.Count; j++)
                             {
-                                string tempVarName1 = varEl.Variant.ToLower();
-                                string tempVarName2 = el.VariantsTag[j].Variant.ToLower();
+                                string tempVarName1 = varEl.Variant.ToLower().Trim();
+                                string tempVarName2 = el.VariantsTag[j].Variant.ToLower().Trim();
 
                                 tempVarName1 = DelNew(tempVarName1);
                                 tempVarName2 = DelNew(tempVarName2);
@@ -91,7 +93,11 @@ namespace FlowText
                             }
 
                             if (flag2)
-                                el.VariantsTag.Add(varEl);
+                            {
+                                if (varEl.Variant.ToLower().Trim() == "size")
+                                    el.VariantsTag.Insert(0, varEl);
+                                else el.VariantsTag.Add(varEl);
+                            }
                         }
                     }
                 }
@@ -105,6 +111,42 @@ namespace FlowText
 
                     tempTags.Add(tempHandler);
                 }
+            }
+
+            return tempTags;
+        }
+
+        public List<TagHandler> ReViwVariants()
+        {
+            List<TagHandler> tempTags = new List<TagHandler>();
+
+            foreach (var el in Tags)
+            {
+                List<VariantHandler> variantHandlers = new List<VariantHandler>();
+
+                foreach (var variant in el.VariantsTag)
+                {
+                    string tempVarName1 = DelNew(variant.Variant.ToLower().Trim());
+                    bool flag = true;
+
+                    foreach (var nonVariants in variantHandlers)
+                    {
+                        string tempVarName2 = DelNew(nonVariants.Variant.ToLower().Trim());
+
+                        if (tempVarName1 == tempVarName2)
+                            flag = false;
+                    }
+
+                    if (flag)
+                        variantHandlers.Add(variant);
+                }
+
+                TagHandler tempHandler = new TagHandler();
+                tempHandler.TagName = el.TagName;
+                tempHandler.TagEnd = el.TagEnd;
+                tempHandler.AddVariantsTag(variantHandlers);
+
+                tempTags.Add(tempHandler);
             }
 
             return tempTags;
