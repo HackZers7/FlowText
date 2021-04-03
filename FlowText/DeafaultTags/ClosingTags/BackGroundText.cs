@@ -3,11 +3,12 @@ using System.Text.RegularExpressions;
 
 namespace FlowText.DeafaultTags.ClosingTags
 {
-    class BackGroundText : ICreatorClosingTags
+    class BackGroundText : ITagsCreator
     {
         public string TagName { get; } = "background";
+        public TypesTag TypeTag { get; } = TypesTag.ClosingTag;
 
-        public string ParseText(string runCode, TagHandler tag, TextHandler textHandler)
+        public string ParseText(string runCode, TagHandler tag, TextHandler textHandler, ParseText owner)
         {
             foreach (var var in tag.VariantsTag)
                 switch (var.Variant.ToLower().Trim())

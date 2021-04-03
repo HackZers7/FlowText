@@ -59,8 +59,8 @@
     <Compile Include="Handlers\TagHandler.cs" />
     <Compile Include="Handlers\TextHandler.cs" />
     <Compile Include="Handlers\VariantHandler.cs" />
-    <Compile Include="TagsCreator\ICreatorClosingTags.cs" />
-    <Compile Include="TagsCreator\ICreatorOneTags.cs" />
+    <Compile Include="TagsCreator\ITagsCreator.cs" />
+    <Compile Include="TagsCreator\TypesTag.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

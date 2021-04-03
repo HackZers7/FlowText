@@ -19,7 +19,7 @@ namespace FlowText
         /// Метод собирает текст на осневе данных, которые ему уже были предоставлены.
         /// </summary>
         /// <returns>Возвращаяет уже собранный текст.</returns>
-        public string Parse(List<ICreatorOneTags> oneTags, List<ICreatorClosingTags> closingTags)
+        public string Parse(List<ITagsCreator> customTags, ParseText owner)
         {
             if (Text == null)
                 return "";
@@ -33,17 +33,18 @@ namespace FlowText
 
                 foreach (TagHandler el in Tags) // Запуск поиска просмотра тегов
                 {
-                    foreach (var oTags in oneTags)
-                        if (el.TagName.Replace("&OneTagsSplitTag&", "").ToLower().Trim() == oTags.TagName)
+                    foreach (var tTags in customTags)
+                    {
+                        if (el.TagName.Replace("&OneTagsSplitTag&", "").ToLower().Trim() == tTags.TagName && tTags.TypeTag == TypesTag.OneTag)
                         {
                             FlagBreak = true;
-                            run = oTags.ParseText(run, el, this);
+                            run = tTags.ParseText(run, el, this, owner);
                             return run;
                         }
 
-                    foreach (var cTags in closingTags)
-                        if (el.TagName.ToLower().Trim() == cTags.TagName)
-                            run = cTags.ParseText(run, el, this);
+                        if (el.TagName.ToLower().Trim() == tTags.TagName && tTags.TypeTag == TypesTag.ClosingTag)
+                            run = tTags.ParseText(run, el, this, owner);
+                    }                      
 
                     run += " ";
                     if (FlagBreak) return run;
