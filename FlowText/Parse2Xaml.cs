@@ -14,9 +14,83 @@ namespace FlowText
 {
     public partial class ParseText
     {
-        public static FlowDocument ParseTextToXaml(string s, double baseFontSize = 14, TextAlignment textAlignment = TextAlignment.Left)
+        private double _fontSize = 14;
+        private TextAlignment _textAlignment = TextAlignment.Left;
+        private string _lastContent = "";
+        private string _startBracket = "[";
+        private string _endBracket = "]";
+        private List<ITagsCreator> _cusromTags = new List<ITagsCreator>();
+        private FlowDocument _lastFlowDocument = new FlowDocument();
+        private object _otherCustomProperties = null;
+
+        #region Properties
+        /// <summary>
+        /// Возвращает и устанавливает базовы размер шрифта.
+        /// По умолчанию - 14.
+        /// </summary>
+        public double FontSize { get => _fontSize; set => _fontSize = value > 1 ? value : 1; }
+
+        /// <summary>
+        /// Возвращает и устанавливает базовое выравнивание.
+        /// По умолчанию - по левой стороне.
+        /// </summary>
+        public TextAlignment TextAlignment { get => _textAlignment; set => _textAlignment = value; }
+
+        /// <summary>
+        /// Возвращает последний преобразованный текст.
+        /// </summary>
+        public string LastContent { get => _lastContent; }
+
+        /// <summary>
+        /// Возвращает и устанавливает стартовую каретку тега.
+        /// </summary>
+        public string StartBracket { get => _startBracket; set => _startBracket = string.IsNullOrEmpty(value) ? "[" : value; }
+
+        /// <summary>
+        /// Возвращает и устанавливает конечную каретку тега.
+        /// </summary>
+        public string EndBracket { get => _endBracket; set => _endBracket = string.IsNullOrEmpty(value) ? "]" : value; }
+
+        /// <summary>
+        /// Возвращает и устанавливает пользовательсие теги.
+        /// </summary>
+        public List<ITagsCreator> CustomTags { get => _cusromTags; set => _cusromTags = value; }
+
+        /// <summary>
+        /// Возвращает последний преобразованныей Потоковый документ.
+        /// </summary>
+        public FlowDocument LastFlowDocument { get => _lastFlowDocument; }
+
+        /// <summary>
+        /// Возвращает и устанавливает объект (ссылки) на класс с доп. параметрами для паршеров пользовательских тегов.
+        /// </summary>
+        public object CustomProperties { get => _otherCustomProperties; set => _otherCustomProperties = value; }
+        #endregion
+
+        #region Иницилизаторы
+        /// <summary>
+        /// Заного преобразует последний текст из формата "При[Font size=3 family=Font_A]вет [/b]мир[/b][/Font]!"
+        /// в формат пригодный для записи в потоковые документы.
+        /// Для обозначения пробелов внутри значения тега использовать _.
+        /// Внимание закрывайте все теги перед br - переносом на следующую строчку.
+        /// </summary>
+        public FlowDocument ParseTextToXaml()
         {
-            return ParseTextToXaml(s, new List<ICreatorOneTags>(), new List<ICreatorClosingTags>(), baseFontSize, textAlignment);
+            return ParseTextToXaml(_lastContent);
+        }
+
+        /// <summary>
+        /// Заного преобразует последний текст из формата "При[Font size=3 family=Font_A]вет [/b]мир[/b][/Font]!"
+        /// в формат пригодный для записи в потоковые документы.
+        /// Для обозначения пробелов внутри значения тега использовать _.
+        /// Внимание закрывайте все теги перед br - переносом на следующую строчку.
+        /// </summary>
+        /// <param name="customTags">Пользовательские теги</param>
+        public FlowDocument ParseTextToXaml(List<ITagsCreator> customTags)
+        {
+            _cusromTags = customTags;
+
+            return ParseTextToXaml(_lastContent);
         }
 
         /// <summary>
@@ -25,39 +99,52 @@ namespace FlowText
         /// Для обозначения пробелов внутри значения тега использовать _.
         /// Внимание закрывайте все теги перед br - переносом на следующую строчку.
         /// </summary>
-        /// <param name="s">Строка для сборки</param>
-        /// <param name="baseFontSize">Базовый размер шрифта</param>
-        /// <param name="textAlignment">Выравнивание всего текста</param>
-        public static FlowDocument ParseTextToXaml(string s, List<ICreatorOneTags> oneTags, List<ICreatorClosingTags> closingTags, double baseFontSize = 14, TextAlignment textAlignment = TextAlignment.Left)
+        /// <param name="s">Строка для преобразования</param>
+        /// <param name="customTags">Пользовательские теги</param>
+        public FlowDocument ParseTextToXaml(string s, List<ITagsCreator> customTags)
         {
-            var tags = CDefaultTags();
-            var onetags = CDefaultOneTags();
+            _cusromTags = customTags;
 
-            tags.AddRange(closingTags);
-            onetags.AddRange(oneTags);
+            return ParseTextToXaml(s);
+        }
+        #endregion
+
+        /// <summary>
+        /// Преобразует текст из формата "При[Font size=3 family=Font_A]вет [/b]мир[/b][/Font]!"
+        /// в формат пригодный для записи в потоковые документы.
+        /// Для обозначения пробелов внутри значения тега использовать _.
+        /// Внимание закрывайте все теги перед br - переносом на следующую строчку.
+        /// </summary>
+        /// <param name="s">Строка для преобразования</param>
+        public FlowDocument ParseTextToXaml(string s)
+        {
+            _lastContent = s;
+            // Создание тегов по умолчанию
+            var tags = CDefaultTags();
+            // Добавление пользовательских тегов к остальным
+            tags.AddRange(_cusromTags);
 
             try
             {
-                // Задание значений для открывающегося и закрывающегося тега
-                string startBracket = "[";
-                string endBracket = "]";
-
-                s = s.Replace(@"\" + startBracket, "$rb");
-                s = s.Replace(@"\" + endBracket, "$lb");
-
+                // Замена экранированных кореток
+                s = s.Replace(@"\" + _startBracket, "$rb");
+                s = s.Replace(@"\" + _endBracket, "$lb");
+                // Подготовка изначального кода Потокового документа
                 string doneText = string.Format("<FlowDocument xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'" +
                 " xmlns:x = 'http://schemas.microsoft.com/winfx/2006/xaml'" +
                 " xmlns:d = 'http://schemas.microsoft.com/expression/blend/2008'" +
                 " xmlns:mc = 'http://schemas.openxmlformats.org/markup-compatibility/2006'" +
-                $" FontSize='{baseFontSize}'" +
+                $" FontSize='{_fontSize}'" +
                 " xml:space='preserve'> ");
 
-                List<string> textParce = TagBR(SplitText(s, startBracket, endBracket), startBracket, endBracket); // Разделение текста по тегу br
+                List<string> textParce = TagBR(SplitText(s)); // Разделение текста по тегу br
 
                 foreach (string el in textParce)
                 {
-                    List<string> tempText = OneTagsParse(SplitText(el, startBracket, endBracket), onetags, startBracket, endBracket);
+                    // Паршинг одиночных тегов
+                    List<string> tempText = OneTagsParse(SplitText(el), tags);
 
+                    // Перенос нескольких пробелов из "пустых" строчек для правильной работы табуляции
                     if (tempText.Count > 1)
                         for (int i = 0; i < tempText.Count;)
                         {
@@ -66,7 +153,7 @@ namespace FlowText
                                 int pos = 0;
 
                                 for (int j = i + 1; j < tempText.Count; j++)
-                                    if (!tempText[j].Contains(startBracket) && !tempText[j].Contains(endBracket))
+                                    if (!tempText[j].Contains(_startBracket) && !tempText[j].Contains(_endBracket))
                                     {
                                         pos = j;
                                         break;
@@ -85,18 +172,16 @@ namespace FlowText
                             else i++;
                         }
 
-                    doneText += $"<Paragraph TextAlignment='{TextAligmentSwith(textAlignment)}'>" +
-                        TwoTagsParse(tempText, baseFontSize, startBracket, endBracket, onetags, tags) +  // Преобразование в код Xaml на основе двух тегов
+                    doneText += $"<Paragraph TextAlignment='{TextAligmentSwith()}'>" +
+                        TwoTagsParse(tempText, tags) +  // Преобразование в код Xaml на основе двух тегов
                         "</Paragraph>";
                 }
 
                 doneText += "</FlowDocument>";
-
-                doneText = doneText.Replace(@"$rb", startBracket);
-                doneText = doneText.Replace(@"$lb", endBracket);
-
-                //MessageBox.Show(doneText);
-
+                // Возвращем экранированные корретки на место
+                doneText = doneText.Replace(@"$rb", _startBracket);
+                doneText = doneText.Replace(@"$lb", _endBracket);
+                // Интерпритируеи готовый код Потокового документа
                 using (var xmlReader = new XmlTextReader(new MemoryStream(new UTF8Encoding().GetBytes(doneText))) { WhitespaceHandling = WhitespaceHandling.None })
                 {
                     var document = (FlowDocument)XamlReader.Load(xmlReader);
@@ -111,7 +196,7 @@ namespace FlowText
                     return document;
                 }
             }
-            catch (Exception e)
+            catch (Exception e) // Реагируем на ошибку компиляции
             {
                 string exaption = string.Format("<FlowDocument xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'" +
                 " xmlns:x = 'http://schemas.microsoft.com/winfx/2006/xaml'" +
@@ -131,22 +216,19 @@ namespace FlowText
                 return flowDocument;
             }
         }
-        private static List<string> TagBR(List<string> s, string startBracket, string endBracket)
+        private List<string> TagBR(List<string> s)
         {
             string tag = "br"; // Тег, который будет распозноваться как перенос на следующую строчку
             try
             {
                 List<int> tagBr = new List<int>();
 
-                // Добавление тега br в начало и конец строкового массива
-                List<string> temp = new List<string> { $"{startBracket}{tag}{endBracket}" };
-                temp.AddRange(s);
-                s.Clear();
-                s.AddRange(temp);
-                s.Add($"{startBracket}{tag}{endBracket}");
+                //Добавление тега br в начало и конец строкового массива
+                s.Insert(0, $"{_startBracket}{tag}{_endBracket}");
+                s.Add($"{_startBracket}{tag}{_endBracket}");
 
                 for (int i = 0; i < s.Count; i++) // Поиск тегов br и разделение по ним
-                    if (s[i].ToLower() == $"{startBracket}{tag}{endBracket}".ToLower())
+                    if (s[i].ToLower() == $"{_startBracket}{tag}{_endBracket}".ToLower())
                         tagBr.Add(i);
 
                 List<string> returnString = new List<string>(); // Здесь храняться уже разделенные строки
@@ -162,27 +244,22 @@ namespace FlowText
                         str.Add(s[i]);
                     }
 
-                    string tempStr = "";
-                    foreach (string el in str) // Перемещение строк в переменную, для передачи значения
-                        tempStr += el;
-
-                    returnString.Add(tempStr);
+                    returnString.Add(string.Join("", str));
                 }
 
                 return returnString;
             }
             catch { return new List<string> { $"Ошибка: Произошла ошибка при разделении на строки, пожалуйста проверьте все теги {tag}." }; }
         }
-
-        private static List<string> OneTagsParse(List<string> s, List<ICreatorOneTags> oneTags, string startBracket, string endBracket)
+        private List<string> OneTagsParse(List<string> s, List<ITagsCreator> oneTags)
         {
             try
             {
                 for (int i = 0; i < s.Count; i++)
                 {
-                    if (s[i].Contains(startBracket) && s[i].Contains(endBracket))
+                    if (s[i].Contains(_startBracket) && s[i].Contains(_endBracket))
                     {
-                        if (s[i].StartsWith($"{startBracket}!--") && s[i].EndsWith($"--{endBracket}"))
+                        if (s[i].StartsWith($"{_startBracket}!--") && s[i].EndsWith($"--{_endBracket}"))
                         {
                             s[i] = "";
                             continue;
@@ -190,7 +267,7 @@ namespace FlowText
 
                         s[i] = s[i].Trim();
 
-                        TagSplitter(s[i], out string tagName, out string tagVarl, startBracket, endBracket);
+                        TagSplitter(s[i], out string tagName, out string tagVarl);
 
                         string[] tagVar = new string[0];
 
@@ -198,13 +275,14 @@ namespace FlowText
                             tagVar = tagVarl.Split(new char[] { ' ' });
 
                         foreach (var el in oneTags)
-                            if (el.TagName == tagName.ToLower().Trim())
+                            if (el.TypeTag == TypesTag.OneTag && el.TagName == tagName.ToLower().Trim())
                             {
                                 s[i] = "[&OneTagsSplitTag&" + tagName + " " + tagVarl + "]";
                                 s.Insert(i + 1, "Текст заполнения внутренностей тега, будет удален.");
                                 s.Insert(i + 2, "[/&OneTagsSplitTag&" + tagName + "]");
                             }
 
+                        // Обработка табуляции
                         switch (tagName.ToLower())
                         {
                             case "tab":
@@ -219,11 +297,9 @@ namespace FlowText
             }
             catch (Exception e) { MessageBox.Show("" + e); return new List<string> { $"Ошибка: Проверьте одиночные теги." }; }
         }
-
-        private static string TwoTagsParse(List<string> s, double baseFontSize, string startBracket, string endBracket,
-            List<ICreatorOneTags> oneTags, List<ICreatorClosingTags> tags)
+        private string TwoTagsParse(List<string> s, List<ITagsCreator> tags)
         {
-            // Произвоиться запись тега вместе с текстом, для последующего преобразования. Текст записывается по порядку следования
+            // Производиться запись тега вместе с текстом, для последующего преобразования. Текст записывается по порядку следования
             List<TextHandler> textHandler = new List<TextHandler>();
 
             // Записываются все найденные открытые теги по пути, если найден закрывающийся тег такого же типа, то открытый тег закрывается
@@ -239,7 +315,7 @@ namespace FlowText
 
                     int pos1 = -1;
                     // Смотрит содержит ли предоставленный элемент текста открывающийся тег
-                    if (s[i].Contains(startBracket) && s[i].Contains(endBracket))
+                    if (s[i].Contains(_startBracket) && s[i].Contains(_endBracket))
                         pos1 = i;
                     else // Если не содержит, то текст записывается в держатель вместе со всеми открытыми тегами
                     {
@@ -248,7 +324,7 @@ namespace FlowText
                         foreach (TagHandler el in openTags)
                             tempTextHandler.Tags.Add(el);
 
-                        tempTextHandler.BaseFontSize = baseFontSize;
+                        tempTextHandler.BaseFontSize = _fontSize;
 
                         textHandler.Add(tempTextHandler);
 
@@ -261,21 +337,23 @@ namespace FlowText
 
 
                     // Резделение тега и его вариантов, раделителями являются пробелы
-                    TagSplitter(s[pos1], out string tagName, out string tagVar, startBracket, endBracket);
+                    TagSplitter(s[pos1], out string tagName, out string tagVar);
 
                     int pos2 = -1;
 
+                    // Счетчик, указывающий, сколько закрывающихся тегов необзодимо пропустить
                     int countSkip = 0;
 
                     // Поиск закрывающегося тега
                     for (int j = pos1 + 1; j < s.Count; j++)
                     {
-                        TagSplitter(s[j], out string tempName, out string none, startBracket, endBracket);
+                        TagSplitter(s[j], out string tempName, out string none);
 
-                        if ($"{startBracket}{tagName}{endBracket}".ToLower() == $"{startBracket}{tempName}{endBracket}".ToLower())
+                        // Если найден открытый тег такого же типа, пропустить следующий закрытый
+                        if ($"{_startBracket}{tagName}{_endBracket}".ToLower() == $"{_startBracket}{tempName}{_endBracket}".ToLower())
                             countSkip++;
 
-                        if ($"{startBracket}/{tagName}{endBracket}".ToLower() == s[j].ToLower().Replace(" ", ""))
+                        if ($"{_startBracket}/{tagName}{_endBracket}".ToLower() == s[j].ToLower().Replace(" ", ""))
                         {
                             if (countSkip == 0)
                             {
@@ -304,12 +382,11 @@ namespace FlowText
             string doneText = "";
             // Сборка текста
             foreach (TextHandler el in textHandler)
-                doneText += el.Parse(oneTags, tags);
+                doneText += el.Parse(tags, this);
 
             return doneText;
         }
-
-        private static void TagSplitter(string s, out string tagName, out string tagVar, string startBracket, string endBracket)
+        private void TagSplitter(string s, out string tagName, out string tagVar)
         {
             tagName = s;
             tagVar = "";
@@ -317,8 +394,8 @@ namespace FlowText
             if (!tagName.Contains("[") && !tagName.Contains("]"))
                 return;
 
-            tagName = tagName.Remove(0, startBracket.Length);
-            tagName = tagName.Remove(tagName.Length - endBracket.Length, endBracket.Length);
+            tagName = tagName.Remove(0, _startBracket.Length);
+            tagName = tagName.Remove(tagName.Length - _endBracket.Length, _endBracket.Length);
 
             tagName = tagName.Trim();
 
@@ -330,35 +407,34 @@ namespace FlowText
                 tagName = tagName.Substring(0, posp);
             }
         }
-
-        private static List<string> SplitText(string s, string startBracket, string endBracket)
+        private List<string> SplitText(string s)
         {
             string rb = "&pR+++&";
             string lb = "&pL+++&";
-            string[] stringSeparators = { startBracket, endBracket };
+            string[] stringSeparators = { _startBracket, _endBracket };
 
-            s = s.Replace(startBracket, startBracket + rb);
-            s = s.Replace(endBracket, lb + endBracket);
+            s = s.Replace(_startBracket, _startBracket + rb);
+            s = s.Replace(_endBracket, lb + _endBracket);
 
             List<string> textParse = s.Split(stringSeparators, StringSplitOptions.RemoveEmptyEntries).ToList();
 
             for (int i = 0; i < textParse.Count; i++)
             {
-                textParse[i] = textParse[i].Replace(rb, startBracket);
-                textParse[i] = textParse[i].Replace(lb, endBracket);
+                textParse[i] = textParse[i].Replace(rb, _startBracket);
+                textParse[i] = textParse[i].Replace(lb, _endBracket);
 
-                if (!textParse[i].Contains(startBracket) || !textParse[i].Contains(endBracket))
+                if (!textParse[i].Contains(_startBracket) || !textParse[i].Contains(_endBracket))
                 {
-                    textParse[i] = textParse[i].Replace(startBracket, "");
-                    textParse[i] = textParse[i].Replace(endBracket, "");
+                    textParse[i] = textParse[i].Replace(_startBracket, "");
+                    textParse[i] = textParse[i].Replace(_endBracket, "");
                 }
             }
 
             return textParse;
         }
-        private static string TextAligmentSwith(TextAlignment textAlignment)
+        private string TextAligmentSwith()
         {
-            switch (textAlignment)
+            switch (_textAlignment)
             {
                 case TextAlignment.Right:
                     return "Right";

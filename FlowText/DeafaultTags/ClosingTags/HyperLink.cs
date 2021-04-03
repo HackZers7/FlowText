@@ -3,11 +3,12 @@ using FlowText.TagsCreator;
 
 namespace FlowText.DeafaultTags.ClosingTags
 {
-    class HyperLink : ICreatorClosingTags
+    class HyperLink : ITagsCreator
     {
         public string TagName { get; } = "hyperlink";
+        public TypesTag TypeTag { get; } = TypesTag.ClosingTag;
 
-        public string ParseText(string runCode, TagHandler tag, TextHandler textHandler)
+        public string ParseText(string runCode, TagHandler tag, TextHandler textHandler, ParseText owner)
         {
             textHandler.FlagBreak = true;
 

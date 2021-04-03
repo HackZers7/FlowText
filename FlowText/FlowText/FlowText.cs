@@ -9,8 +9,7 @@ namespace FlowText
     {
         private string _text;
         private TextAlignment _textAlignment = TextAlignment.Left;
-        private List<ICreatorClosingTags> _customClosingTags = new List<ICreatorClosingTags>();
-        private List<ICreatorOneTags> _customOneTags = new List<ICreatorOneTags>();
+        private List<ITagsCreator> _customTags = new List<ITagsCreator>();
 
         /// <summary>
         /// Возвращает и устанавливает текст.
@@ -27,7 +26,12 @@ namespace FlowText
                 if (value != null)
                     _text = value;
 
-                Document = ParseText.ParseTextToXaml(_text, _customOneTags, _customClosingTags, FontSize, TextAlignment);
+                var parse = new ParseText();
+                parse.CustomTags = _customTags;
+                parse.FontSize = FontSize;
+                parse.TextAlignment = TextAlignment;
+
+                Document = parse.ParseTextToXaml(_text);
             }
         }
         /// <summary>
@@ -35,13 +39,9 @@ namespace FlowText
         /// </summary>
         public TextAlignment TextAlignment { get => _textAlignment; set => _textAlignment = value; }
         /// <summary>
-        /// Возвращает и устанавливает кастомные закрывающиеся теги.
+        /// Возвращает и устанавливает пользовательские теги.
         /// </summary>
-        public List<ICreatorClosingTags> CustomClosingTags { get => _customClosingTags; set => _customClosingTags = value; }
-        /// <summary>
-        /// Возвращает и устанавливает кастомные одиночные теги.
-        /// </summary>
-        public List<ICreatorOneTags> CustomOneTags { get => _customOneTags; set => _customOneTags = value; }
+        public List<ITagsCreator> CustomTags { get => _customTags; set => _customTags = value; }
 
     }
 }

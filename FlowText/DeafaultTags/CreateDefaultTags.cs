@@ -7,23 +7,18 @@ namespace FlowText.DeafaultTags
 {
     public static class CreateDefaultTags
     {
-        public static List<ICreatorClosingTags> CDefaultTags()
+        public static List<ITagsCreator> CDefaultTags()
         {
-            return new List<ICreatorClosingTags>()
+            return new List<ITagsCreator>()
             {
-                new Bold() as ICreatorClosingTags,
-                new Italic() as ICreatorClosingTags,
-                new BackGroundText() as ICreatorClosingTags,
-                new Font() as ICreatorClosingTags,
-                new HyperLink() as ICreatorClosingTags
-            };
-        }
-
-        public static List<ICreatorOneTags> CDefaultOneTags()
-        {
-            return new List<ICreatorOneTags>()
-            {
-                new BreakLine() as ICreatorOneTags
+                // Закрывающиеся теги
+                new Bold(),
+                new Italic(),
+                new BackGroundText(),
+                new Font(),
+                new HyperLink(),
+                // Одиночные теги
+                new BreakLine()
             };
         }
     }
